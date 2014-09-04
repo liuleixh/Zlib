@@ -29,7 +29,7 @@
 
 #include "ioapi.h"
 
-voidpf call_zopen64_ll (const zlib_filefunc64_32_def* pfilefunc,const void*filename,const size_t size,int mode)
+voidpf call_zopen64_ll (const zlib_filefunc64_32_def* pfilefunc, void*filename,const size_t size,int mode)
 {
     if (pfilefunc->zfile_func64.zopen64_file != NULL)
         return (*(pfilefunc->zfile_func64.zopen64_file)) (pfilefunc->zfile_func64.opaque,filename,size,mode);
@@ -38,7 +38,7 @@ voidpf call_zopen64_ll (const zlib_filefunc64_32_def* pfilefunc,const void*filen
         return (*(pfilefunc->zopen32_file))(pfilefunc->zfile_func64.opaque,(const char*)filename,mode);
     }
 }
-voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename,int mode)
+voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,void*filename,int mode)
 {
     if (pfilefunc->zfile_func64.zopen64_file != NULL)
         return (*(pfilefunc->zfile_func64.zopen64_file)) (pfilefunc->zfile_func64.opaque,filename,100,mode);
@@ -120,7 +120,7 @@ static voidpf ZCALLBACK fopen_file_func (voidpf opaque, const char* filename, in
     return file;
 }
 
-static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename,const size_t size, int mode)
+static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, void* filename,const size_t size, int mode)
 {
     FILE* file = NULL;
     const char* mode_fopen = NULL;
@@ -135,7 +135,7 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename,c
 
     if ((filename!=NULL) && (mode_fopen != NULL))
         //file = FOPEN_FUNC((const char*)filename, mode_fopen);
-        file = FOPEN_FUNC_MEM((const char*)filename, size,mode_fopen);
+        file =FOPEN_FUNC_MEM(filename, size,mode_fopen);
     return file;
 }
 
