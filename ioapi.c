@@ -9,7 +9,6 @@
          For more info read MiniZip_info.txt
 
 */
-
 #if defined(_WIN32) && (!(defined(_CRT_SECURE_NO_WARNINGS)))
         #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -17,9 +16,11 @@
 #if defined(__APPLE__) || defined(IOAPI_NO_64)
 // In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
 #define FOPEN_FUNC(filename, mode) fopen(filename, mode)
+#define FOPEN_FUNC_MEM(filename, size, mode) fmemopen(filename, size ,mode)
 #define FTELLO_FUNC(stream) ftello(stream)
 #define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
 #else
+#define FOPEN_FUNC_MEM(filename, size, mode) fmemopen(filename, size ,mode)
 #define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
 #define FTELLO_FUNC(stream) ftello64(stream)
 #define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
@@ -28,10 +29,19 @@
 
 #include "ioapi.h"
 
+voidpf call_zopen64_ll (const zlib_filefunc64_32_def* pfilefunc,const void*filename,const size_t size,int mode)
+{
+    if (pfilefunc->zfile_func64.zopen64_file != NULL)
+        return (*(pfilefunc->zfile_func64.zopen64_file)) (pfilefunc->zfile_func64.opaque,filename,size,mode);
+    else
+    {
+        return (*(pfilefunc->zopen32_file))(pfilefunc->zfile_func64.opaque,(const char*)filename,mode);
+    }
+}
 voidpf call_zopen64 (const zlib_filefunc64_32_def* pfilefunc,const void*filename,int mode)
 {
     if (pfilefunc->zfile_func64.zopen64_file != NULL)
-        return (*(pfilefunc->zfile_func64.zopen64_file)) (pfilefunc->zfile_func64.opaque,filename,mode);
+        return (*(pfilefunc->zfile_func64.zopen64_file)) (pfilefunc->zfile_func64.opaque,filename,100,mode);
     else
     {
         return (*(pfilefunc->zopen32_file))(pfilefunc->zfile_func64.opaque,(const char*)filename,mode);
@@ -110,7 +120,7 @@ static voidpf ZCALLBACK fopen_file_func (voidpf opaque, const char* filename, in
     return file;
 }
 
-static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename, int mode)
+static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename,const size_t size, int mode)
 {
     FILE* file = NULL;
     const char* mode_fopen = NULL;
@@ -124,7 +134,8 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename, 
         mode_fopen = "wb";
 
     if ((filename!=NULL) && (mode_fopen != NULL))
-        file = FOPEN_FUNC((const char*)filename, mode_fopen);
+        //file = FOPEN_FUNC((const char*)filename, mode_fopen);
+        file = FOPEN_FUNC_MEM((const char*)filename, size,mode_fopen);
     return file;
 }
 
