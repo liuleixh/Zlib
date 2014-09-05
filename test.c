@@ -38,7 +38,7 @@ int DocxToXml(char *filebuf,size_t file_size,char **document_fp,size_t *document
 			result = 4;
 			goto End;
 		}
-		if(strstr(filename,"document.xml"))
+		if(0==strcmp(filename+strlen(filename)-strlen("document.xml"),"document.xml"))
 		{
 			if(UNZ_OK!=unzOpenCurrentFile(zFile))
 			{
